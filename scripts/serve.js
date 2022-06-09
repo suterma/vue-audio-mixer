@@ -1,8 +1,8 @@
 import path from 'path'
 import serve from 'rollup-plugin-serve'
 import livereload from 'rollup-plugin-livereload'
-import vue from 'rollup-plugin-vue'
-import babel from '@rollup/plugin-babel'
+import vuePlugin   from 'rollup-plugin-vue'
+ import babel from '@rollup/plugin-babel'
 import resolve from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
 import common from '@rollup/plugin-commonjs'
@@ -19,8 +19,13 @@ export default {
     sourcemap: false
   },
   plugins: [
-    vue({
-      css: true
+    vuePlugin  ({
+      css: true,
+      compilerOptions: {
+        compatConfig: {
+          MODE: 2
+        }
+      }
     }),
     scss(),
     postcss(),
@@ -28,7 +33,9 @@ export default {
 
     replace({
       preventAssignment: true,
-      'process.env.NODE_ENV': JSON.stringify('development')
+      'process.env.NODE_ENV': JSON.stringify('development'),
+      __VUE_OPTIONS_API__: true,
+      __VUE_PROD_DEVTOOLS__: true,
     }),
     resolve({
       mainFields: ['module', 'main']
