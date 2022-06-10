@@ -7486,6 +7486,75 @@
             (false );
         return isArray(fn) ? value => invokeArrayFns(fn, value) : fn;
     };
+    function onCompositionStart(e) {
+        e.target.composing = true;
+    }
+    function onCompositionEnd(e) {
+        const target = e.target;
+        if (target.composing) {
+            target.composing = false;
+            target.dispatchEvent(new Event('input'));
+        }
+    }
+    // We are exporting the v-model runtime directly as vnode hooks so that it can
+    // be tree-shaken in case v-model is never used.
+    const vModelText = {
+        created(el, { modifiers: { lazy, trim, number } }, vnode) {
+            el._assign = getModelAssigner(vnode);
+            const castToNumber = number || (vnode.props && vnode.props.type === 'number');
+            addEventListener(el, lazy ? 'change' : 'input', e => {
+                if (e.target.composing)
+                    return;
+                let domValue = el.value;
+                if (trim) {
+                    domValue = domValue.trim();
+                }
+                if (castToNumber) {
+                    domValue = toNumber(domValue);
+                }
+                el._assign(domValue);
+            });
+            if (trim) {
+                addEventListener(el, 'change', () => {
+                    el.value = el.value.trim();
+                });
+            }
+            if (!lazy) {
+                addEventListener(el, 'compositionstart', onCompositionStart);
+                addEventListener(el, 'compositionend', onCompositionEnd);
+                // Safari < 10.2 & UIWebView doesn't fire compositionend when
+                // switching focus before confirming composition choice
+                // this also fixes the issue where some browsers e.g. iOS Chrome
+                // fires "change" instead of "input" on autocomplete.
+                addEventListener(el, 'change', onCompositionEnd);
+            }
+        },
+        // set value on mounted so it's after min/max for type="range"
+        mounted(el, { value }) {
+            el.value = value == null ? '' : value;
+        },
+        beforeUpdate(el, { value, modifiers: { lazy, trim, number } }, vnode) {
+            el._assign = getModelAssigner(vnode);
+            // avoid clearing unresolved text. #2302
+            if (el.composing)
+                return;
+            if (document.activeElement === el && el.type !== 'range') {
+                if (lazy) {
+                    return;
+                }
+                if (trim && el.value.trim() === value) {
+                    return;
+                }
+                if ((number || el.type === 'number') && toNumber(el.value) === value) {
+                    return;
+                }
+            }
+            const newValue = value == null ? '' : value;
+            if (el.value !== newValue) {
+                el.value = newValue;
+            }
+        }
+    };
     const vModelCheckbox = {
         // #4096 array checkboxes need to be deep traversed
         deep: true,
@@ -10710,7 +10779,85 @@
 
     var VueKnobControl = /*@__PURE__*/getDefaultExportFromCjs(vueKnobControl_umd.exports);
 
-    const EventBus = createApp();
+    var tinyEmitter = {exports: {}};
+
+    function E$1 () {
+      // Keep this empty so it's easier to inherit from
+      // (via https://github.com/lipsmack from https://github.com/scottcorgan/tiny-emitter/issues/3)
+    }
+
+    E$1.prototype = {
+      on: function (name, callback, ctx) {
+        var e = this.e || (this.e = {});
+
+        (e[name] || (e[name] = [])).push({
+          fn: callback,
+          ctx: ctx
+        });
+
+        return this;
+      },
+
+      once: function (name, callback, ctx) {
+        var self = this;
+        function listener () {
+          self.off(name, listener);
+          callback.apply(ctx, arguments);
+        }
+        listener._ = callback;
+        return this.on(name, listener, ctx);
+      },
+
+      emit: function (name) {
+        var data = [].slice.call(arguments, 1);
+        var evtArr = ((this.e || (this.e = {}))[name] || []).slice();
+        var i = 0;
+        var len = evtArr.length;
+
+        for (i; i < len; i++) {
+          evtArr[i].fn.apply(evtArr[i].ctx, data);
+        }
+
+        return this;
+      },
+
+      off: function (name, callback) {
+        var e = this.e || (this.e = {});
+        var evts = e[name];
+        var liveEvents = [];
+
+        if (evts && callback) {
+          for (var i = 0, len = evts.length; i < len; i++) {
+            if (evts[i].fn !== callback && evts[i].fn._ !== callback)
+              liveEvents.push(evts[i]);
+          }
+        }
+
+        // Remove event from queue to prevent memory leak
+        // Suggested by https://github.com/lazd
+        // Ref: https://github.com/scottcorgan/tiny-emitter/commit/c6ebfaa9bc973b33d110a84a307742b7cf94c953#commitcomment-5024910
+
+        (liveEvents.length)
+          ? e[name] = liveEvents
+          : delete e[name];
+
+        return this;
+      }
+    };
+
+    tinyEmitter.exports = E$1;
+    tinyEmitter.exports.TinyEmitter = E$1;
+
+    var E = tinyEmitter.exports;
+    var instance = new E();
+
+    //NOTE: The event bus pattern is discouraged with vue
+    const EventBus = {
+      $on: (...args) => instance.on(...args),
+      $once: (...args) => instance.once(...args),
+      $off: (...args) => instance.off(...args),
+      $emit: (...args) => instance.emit(...args)
+    };
 
     var variables = {"knobTextColourDefault":"#000","knobTextColourDark":"#C0C0C0","marginBetweenChannelsSmall":"1","channelHeight":"200","meterHeight":"210","channelWidthSmall":"40","meterWidthSmall":"5","meterWidthBetweenSmall":"2","channelSliderThumbSizeSmall":"0.4","channelWidthMedium":"57","marginBetweenChannelsMedium":"2","meterWidthMedium":"10","meterWidthBetweenMedium":"5","channelSliderThumbSizeMedium":"0.6","masterChannelLabelBackgroundColour":"#000","channelLabelTextColour":"#FFFFFF","channelStripBackgroundColour":"#16191c","channelMuteButtonBackgroundColour":"#666B73","channelMuteButtonBackgroundColourActive":"#911","channelMuteButtonBorderColour":"#000","channelMuteButtonTextColourHover":"#FFF","channelMuteButtonTextColourActive":"#FFF","channelSoloButtonBackgroundColourActive":"#1cdd20","channelSoloButtonTextColourActive":"#FFF","channelPannerTextColour":"rgb(255, 255, 255)","loaderInnerColour":"#1d7a9c","loaderOuterColour":"#00a7cc","loaderTextColour":"#1d7a9c","sliderInputBackground":"repeating-linear-gradient(90deg, #000, #3b3e41 0.0625em, transparent 0.0625em, transparent 0.75em) no-repeat 50% 0.75em border-box, \r","sliderTrackColour":"#15181b","sliderThumbBackground":"radial-gradient(#ebe1e0 10%, rgba(235, 225, 224, 0.2) 10%, rgba(235, 225, 224, 0) 72%) no-repeat 50% 50%, radial-gradient(at 100% 50%, #e9dfde, #eae1de 71%, rgba(0, 0, 0, 0) 71%) no-repeat 2.5em 50%, linear-gradient(90deg, #e9dfde, #d0c8c6) no-repeat 100% 50%, radial-gradient(at 0 50%, #d0c6c5, #c6baba 71%, rgba(0, 0, 0, 0) 71%) no-repeat 0.75em 50%, linear-gradient(90deg, #e3d9d8, #d0c6c5) no-repeat 0 50%, linear-gradient(#cdc0c0, #fcf5ef, #fcf5ef, #cdc0c0)","progressBarBackgroundColour":"#4c4c4c","progressBarCursorColour":"#b6c8e1","transportTimeBackground":"#000","transportTimeTextColour":"#fff","transportButtonsColour":"#d5d5d5"};
 
@@ -11158,7 +11305,6 @@
     const _hoisted_9$1 = { "data-label": "0" };
 
     function render$7(_ctx, _cache, $props, $setup, $data, $options) {
-      const _component_VueKnobControl = resolveComponent("VueKnobControl");
       const _component_Slider = resolveComponent("Slider");
 
       return (openBlock(), createElementBlock("div", {
@@ -11167,21 +11313,13 @@
         createBaseVNode("div", {
           class: normalizeClass(["vue-audio-mixer-channel-panner-container", {'vue-audio-mixer-is-master':$props.isMaster}])
         }, [
-          ($props.mixerVars.show_pan)
-            ? (openBlock(), createBlock(_component_VueKnobControl, {
-                key: 0,
-                min: -90,
-                max: 90,
-                size: $options.pannerSize,
-                "stroke-width": 7,
-                modelValue: _ctx.pan,
-                "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((_ctx.pan) = $event)),
-                class: "vue-audio-mixer-channel-panner",
-                primaryColor: "#c40303",
-                secondaryColor: "#adadad",
-                textColor: $options.knobTextColour
-              }, null, 8 /* PROPS */, ["size", "modelValue", "textColor"]))
-            : createCommentVNode("v-if", true)
+          createCommentVNode(" <VueKnobControl\r\n          v-if=\"mixerVars.show_pan\"\r\n          :min=\"-90\"\r\n          :max=\"90\"\r\n          :size=\"pannerSize\"\r\n          :stroke-width=\"7\"\r\n          v-model=\"pan\"\r\n          class=\"vue-audio-mixer-channel-panner\"\r\n          primaryColor=\"#c40303\"\r\n          secondaryColor=\"#adadad\"\r\n          :textColor=\"knobTextColour\"\r\n        ></VueKnobControl> "),
+          withDirectives(createBaseVNode("input", {
+            type: "number",
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((_ctx.pan) = $event))
+          }, null, 512 /* NEED_PATCH */), [
+            [vModelText, _ctx.pan]
+          ])
         ], 2 /* CLASS */),
         createBaseVNode("canvas", {
           id: 'canvas'+_ctx._uid,
@@ -13028,7 +13166,8 @@
         },
 
         changePan(value){
-          this.tracks[value.index].pan = parseFloat(value.pan);
+          //TODO fix this.tracks[value.index].pan = parseFloat(value.pan);
+          this.tracks[value.index].pan = parseFloat(0);
         },
 
         changeMute(value){
