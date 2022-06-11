@@ -4,7 +4,7 @@
 
         <div class="vue-audio-mixer-channel-panner-container" :class="{'vue-audio-mixer-is-master':isMaster}">
 
-          <VueKnobControl
+          <!-- <VueKnobControl
           v-if="mixerVars.show_pan"
           :min="-90"
           :max="90"
@@ -15,11 +15,12 @@
           primaryColor="#c40303"
           secondaryColor="#adadad"
           :textColor="knobTextColour"
-        ></VueKnobControl>
+        ></VueKnobControl> -->
+        <input v-model="pan" type="number"/>
       </div>
 
 
-      <canvas :id="'canvas'+_uid"  width="25" :height="meterHeight" style="display: block;" class="vue-audio-mixer-channel-meter-canvas"></canvas>
+      <canvas :id="'canvas'+_componentId"  width="25" :height="meterHeight" style="display: block;" class="vue-audio-mixer-channel-meter-canvas"></canvas>
 
       <div class="slider_value">{{formattedGain}}</div>
 
@@ -55,11 +56,14 @@
 
 <script>
 
-import VueKnobControl from 'vue-knob-control'
+// import VueKnobControl from 'vue-knob-control'
 import EventBus from './../event-bus';
 import variables from '../scss/includes/_variables.scss';
 
 import Slider from './Slider.vue';
+
+/** A simple instance counter, usable for component Ids */
+let instanceCount = 0
 
 export default {
   name: 'Channel',
@@ -82,7 +86,7 @@ export default {
     'solodTracks'
   ],
   components:{
-    VueKnobControl,
+    // VueKnobControl,
     Slider
   },
   data : function(){       
@@ -97,7 +101,7 @@ export default {
           mute        : false,
           meterHeight : parseInt(variables.meterHeight),
           titleModel  : '',
-          loaded      : false
+          loaded      : false,
       };
   },
 
@@ -173,19 +177,26 @@ export default {
     }
   },
 
+  beforeCreate() {
+    // A component Id for internal referencing of HTML elements
+    this._componentId = ++instanceCount;
+   },
+
   beforeDestroy() {
     EventBus.$off(this.mixerVars.instance_id+'ended',this.ended);
   },
 
   mounted(){
+      console.debug("Channel::mounted:_componentId:", this._componentId);
 
-      this.ctx = document.getElementById('canvas'+this._uid).getContext("2d");
+      this.ctx = document.getElementById('canvas'+this._componentId).getContext("2d");
       this.gradient = this.ctx.createLinearGradient(0,0,0,400);
       this.gradient.addColorStop(1,'#31e2fc');
       this.gradient.addColorStop(0.75,'#38fedd');
       this.gradient.addColorStop(0.25,'#38fedd');
       this.gradient.addColorStop(0,'#31e0fc');
 
+      console.debug("Channel::mounted:setting-pan:", this.defaultPan);
       this.pan = this.defaultPan === undefined ? 0 : this.defaultPan;
       this.gain = this.defaultGain === undefined ? 0 : this.defaultGain;
       this.mute = this.defaultMuted === undefined ? false : this.defaultMuted;
@@ -216,11 +227,12 @@ export default {
 
     changeGain()
     {
-      this.$emit('gainChange',this.gain);
+      //TODO later re-enable: this.$emit('gainChange',this.gain);
     },
 
     changePan() {
-      this.$emit('panChange',this.pan);
+      console.debug("Channel::changePan:this.pan:", this.pan);
+      //TODO later re-enable: this.$emit('panChange',this.pan);
     },
 
     muteChange() {
