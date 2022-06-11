@@ -2,7 +2,7 @@
  
   <Channel 
       v-if="loaded" 
-      :index="_uid" 
+      :index="_componentId" 
       :trackIndex="trackIndex" 
       :title="title" 
       :defaultPan="pan" 
@@ -24,6 +24,9 @@
 <script>
 import Channel from './Channel.vue'
 import EventBus from './../event-bus';
+
+/** A simple instance counter, usable for component Ids */
+let instanceCount = 0
 
 export default {
   name: 'MixerChannel',
@@ -69,6 +72,11 @@ export default {
         mutedBySolo                :false,
         mutedByMute                :false
       };
+  },
+
+  beforeCreate() {
+    // A component Id for internal referencing of HTML elements
+    this._componentId = ++instanceCount;
   },
 
   watch:{
@@ -347,7 +355,7 @@ export default {
         if(this.playFrom)
             EventBus.$emit(this.mixerVars.instance_id+'play', this.playFrom);
 
-        EventBus.$emit(this.mixerVars.instance_id+'ended',this._uid);
+        EventBus.$emit(this.mixerVars.instance_id+'ended',this._componentId);
 
     },
 
