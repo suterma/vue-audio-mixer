@@ -10,7 +10,6 @@
 
       <div class="vue-audio-mixer-channel-strip" ref="channelstrip" >
           <div>
-
             <MixerChannel 
               v-show="!track.hidden"
               v-for="(track,index) in tracks" 
@@ -57,6 +56,7 @@
             :mixerVars="mixerVars"
             :tracks="tracks"
           />
+
           <div class="time_and_transport">
             <TimeDisplay 
             :progressTime="progress" 
@@ -70,20 +70,12 @@
             :mixerVars="mixerVars"
             />
           </div>
-
-
       </div>
-
       <div class="text-center">
         <button @click="saveAudioMix" class="vue-audio-mixer-download-mix" :class="{'recording':recording}">Record and download mix</button>
       </div>
-     
-     
     </div>
-   
   </div>
-
-    
 </template>
 
 <script>
@@ -159,14 +151,12 @@ export default {
         track_load_error           : false
       };
   },
+
   created(){
-
-
     this.currentTime =  Date.now()
     this.startedAt = this.currentTime;
 
     this.checkConfig();
-
 
     var AudioContext = window.AudioContext // Default
     || window.webkitAudioContext // Safari and old versions of Chrome
@@ -188,7 +178,6 @@ export default {
       if(this.playing)
         this.currentTime =  Date.now()
     }, 1);
-
   },
 
   beforeDestroy() {
@@ -218,35 +207,29 @@ export default {
   },
 
   computed: {
-
     visibleTracks(){
-
       return this.tracks.filter(t => !t.hidden);
-
     },
 
     mixerWidth()
     {
-
       if(this.track_load_error){
         return '500px';
       }
-
 
       let width = 69; // channel width of medium
       if(this.mixerVars.theme_size == 'Small'){
         width = 51; // channel width of small
       }
       return (width*(this.visibleTracks.length+1))+'px';
-
     },
 
     mixerVars()
     {
       return {
         'theme_size'     : this.themeSize,
-        'theme_colour'     : this.theme,
-        'instance_id'    : this._uid,
+        'theme_colour'   : this.theme,
+        'instance_id'    : Math.floor((Math.random() * 100) + 1),
         'show_pan'       : this.showPan,
         'show_total_time': this.showTotalTime
       }
@@ -254,9 +237,7 @@ export default {
 
     trackClass()
     {
-
       return 'vue-audio-mixer-theme-tracks-'+this.tracks.length;
-
     },
 
     themeClassColour(){
@@ -275,7 +256,6 @@ export default {
       if(this.size && this.size.toLowerCase() == 'small'){
         return 'Small'
       }
-
       return 'Medium'
     },
 
@@ -314,12 +294,9 @@ export default {
   },
 
   methods: {
-
     trackLoadError(track_url)
     {
-
       this.track_load_error = track_url;
-
     },
 
     saveAudioMix(){
@@ -368,7 +345,6 @@ export default {
     },
 
     playFromPercent(percent){
-
       if(this.playing){
         this.restart = true;
         EventBus.$emit(this.mixerVars.instance_id+'stop');
@@ -386,7 +362,6 @@ export default {
 
 
     checkConfig(){
-
       let json = this.config;
 
       if(json){
@@ -395,10 +370,7 @@ export default {
         this.masterGainValue = json.master.gain;
         this.masterMuted     = json.master.muted;
       }
-
-
     },
-
 
     started(){
       this.overRideProgressBarPosition = false;
@@ -411,7 +383,6 @@ export default {
 
     pause()
     {
-
       // stop if already playing
       if(this.playing){
         this.stopRecording();
@@ -427,12 +398,9 @@ export default {
         this.pause();
 
       this.doPlay();
-
-      
-      
     },
-    doPlay(){
 
+    doPlay(){
       if(this.progressPercent >= 100){ // it's at the end, so restart
         this.playing = true;
         this.playFromPercent(0);
@@ -440,16 +408,10 @@ export default {
         this.startedAt = Date.now() - this.progress;
         EventBus.$emit(this.mixerVars.instance_id+'play',this.pausedAt);      
       }
-
     },
-
-
-
-
 
     togglePlay()
     {
-
       if(this.playing){
         this.pause();
       }else {
@@ -491,9 +453,10 @@ export default {
 
     },
 
-
     changeGain(value){
-      this.tracks[value.index].gain = parseFloat(value.gain);
+      if (value && value.gain) {
+        this.tracks[value.index].gain = parseFloat(value.gain);
+      }
     },
 
     changePan(value){
@@ -501,7 +464,9 @@ export default {
     },
 
     changeMute(value){
-      this.tracks[value.index].muted = value.muted;
+      if (value && value.muted) {
+        this.tracks[value.index].muted = value.muted;
+      }
     },
 
     changeSolo(value){
@@ -526,7 +491,6 @@ export default {
         this.masterMuted = false;
         this.gainNode.gain.value = this.masterGainValue; // restore previous gain value
       }
-
     },
 
      // Master Gain

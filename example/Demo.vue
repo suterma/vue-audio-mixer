@@ -14,7 +14,6 @@
             </div>
         </div>
 
-        <pre v-html="syntaxHighlight(newConfig)"></pre>
     </div>
 </template>
 
@@ -27,61 +26,79 @@ export default {
     components: {
         VueAudioMixer,
     },
-    data: function() {
-        return {
-            is_loaded: false,
-            newConfig: null,
-            config: {
-                tracks: [
-                    {
-                        title: 'Bass',
-                        url: 'https://audiomixer.io/stems/bass.mp3',
-                        pan: -30,
-                        gain: 1.2,
-                        muted: false,
-                        hidden: false,
-                    },
-                    {
-                        title: 'Flutes',
-                        url: 'https://audiomixer.io/stems/flutes.mp3',
-                        pan: 73,
-                        gain: 0.9,
-                        muted: false,
-                        hidden: false,
-                    },
-                    {
-                        title: 'Perc',
-                        url: 'https://audiomixer.io/stems/perc.mp3',
-                        pan: 26,
-                        gain: 0.85,
-                        muted: false,
-                        hidden: false,
-                    },
-                    {
-                        title: 'Piano',
-                        url: 'https://audiomixer.io/stems/piano.mp3',
-                        pan: 10,
-                        gain: 1.2,
-                        muted: false,
-                        hidden: false,
-                    },
-                    {
-                        title: 'Strings',
-                        url: 'https://audiomixer.io/stems/strings.mp3',
-                        pan: -49,
-                        gain: 0.9,
-                        muted: false,
-                        hidden: false,
-                    },
-                ],
-                master: {
-                    pan: 0,
-                    gain: 0.3,
-                    muted: false,
-                },
-            },
-        };
-    },
+    data() {
+    return {
+      is_loaded:false,
+      newconfig:{},
+      config: {
+       "tracks": [
+          {
+            "title": "Bass",
+            "url": "/tracks/Blues For Alice 160bpm_Bass.mp3",
+            "pan": 0,
+            "gain": 1,
+            "muted": false,
+            "hidden": false
+          },
+          {
+            "title": "Click",
+            "url": "/tracks/Blues For Alice 160bpm_Click.mp3",
+            "pan": 0,
+            "gain": 0.2,
+            "muted": false,
+            "hidden": false
+          },
+          {
+            "title": "Count In",
+            "url": "/tracks/Blues For Alice 160bpm_Count In.mp3",
+            "pan": 0,
+            "gain": 1,
+            "muted": false,
+            "hidden": false
+          },
+          {
+            "title": "Drums",
+            "url": "/tracks/Blues For Alice 160bpm_Drums.mp3",
+            "pan": 0,
+            "gain": 1,
+            "muted": false,
+            "hidden": false
+          },
+          {
+            "title": "Keys",
+            "url": "/tracks/Blues For Alice 160bpm_Keys.mp3",
+            "pan": 0,
+            "gain": 1,
+            "muted": false,
+            "hidden": false
+          },
+          {
+            "title": "Trumpet",
+            "url": "/tracks/Blues For Alice 160bpm_Trumpet.mp3",
+            "pan": 0,
+            "gain": 1,
+            "muted": false,
+            "hidden": false
+          },
+          {
+            "title": "Master",
+            "url": "/tracks/Blues For Alice 160bpm_MASTER.mp3",
+            "pan": 0,
+            "gain": 1,
+            "muted": false,
+            "hidden": false
+          }
+        ],
+        "master":{
+            "pan":0,
+            "gain":1,
+            "muted":false,
+            "value": 5
+        }
+      }
+    }
+  },
+
     created() {
         this.newConfig = this.config;
     },

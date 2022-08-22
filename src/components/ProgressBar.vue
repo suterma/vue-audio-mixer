@@ -1,13 +1,11 @@
 <template>
-
   <div>
       <div 
         class="vue-audio-mixer-progress-bar" 
         ref="vue-audio-mixer-progress-bar" 
         v-on:mousedown="startDrag" 
       >
-      <canvas width="0" height="20" id="vue-audio-mixer-waveform"></canvas>
-
+        <canvas width="0" height="20" id="vue-audio-mixer-waveform"></canvas>
         <div class="vue-audio-mixer-progress-cursor" :style="{left: progressBarPosition}"></div>
       </div> 
   </div> 
@@ -66,7 +64,6 @@ export default {
     tracks: {
       // This will let Vue know to look inside the array
       deep: true,
-
       // We have to move our method to a handler field
       handler(){
       // only allow the canvas to be refreshed once every 1 seconds max
