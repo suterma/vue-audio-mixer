@@ -77,7 +77,7 @@
     "rollup-plugin-serve": "^1.1.0",
     "rollup-plugin-vue": "^6.0.0",
     "sass-loader": "^13.0.0",
-    "vue": "3.2.31",
+    "vue": "3.2.37",
     "vue-knob-control": "^1.7.0"
   },
   "dependencies": {
