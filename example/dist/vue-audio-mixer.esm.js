@@ -10606,7 +10606,6 @@ if (typeof window !== 'undefined') {
     GlobalVue = global.Vue;
 }
 if (GlobalVue) {
-	console.log('3');
     GlobalVue.use(plugin);
 }
 	console.log('4');

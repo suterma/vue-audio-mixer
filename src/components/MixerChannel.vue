@@ -1,5 +1,4 @@
 <template>
- 
   <Channel 
       v-if="loaded" 
       :index="_componentId" 
@@ -18,18 +17,15 @@
       :showMute="true"
       :mixerVars="mixerVars"
   />
-
 </template>
 
 <script>
 import Channel from './Channel.vue'
 import EventBus from './../event-bus';
 
-/** A simple instance counter, usable for component Ids */
-let instanceCount = 0
-
 export default {
   name: 'MixerChannel',
+
   props: [
       'title',
       'context', 
@@ -43,53 +39,48 @@ export default {
       'hidden',
       'solodTracks'
   ],
+
   components:{Channel},
+
   data : function(){       
       return {
-        sourceNode         : false,
-        scriptProcessorNode: false,
-        gainNode           : false,
-        pannerNode         : false,
-        
-        muted              : false,
-        leftAnalyser       : false,
-        
-        leftBouncer        : {average:0,opacity:1},
-        rightAnalyser      : false,
-        rightBouncer       : {average:0,opacity:1},
-        splitter           : false,
-        ctx                : false,
-        gradient           : false,
         buffer             : false,
+        ctx                : false,
+        gain               : 0.8,
+        gainNode           : false,
+        gainValue          : 0,
+        gradient           : false,
+        leftAnalyser       : false,
+        leftBouncer        : {average:0,opacity:1},
+        loaded             : false,
         meterHeight        : 400,
         meterWidth         : 10,
+        muted              : false,
+        mutedByMute        :false,
+        mutedBySolo        :false,
+        pan                : 0,
+        pannerNode         : false,
         playFrom           : false,
         playing            : false,
-        gainValue          : 0,
-        pan                : 0,
-        gain               : 0.8,
-        loaded             : false,
-        mutedBySolo                :false,
-        mutedByMute                :false
+        rightAnalyser      : false,
+        rightBouncer       : {average:0,opacity:1},
+        scriptProcessorNode: false,
+        sourceNode         : false,
+        splitter           : false,
       };
   },
 
-  beforeCreate() {
-    // A component Id for internal referencing of HTML elements
-    this._componentId = ++instanceCount;
-  },
-
   watch:{
-    
-    solodTracks(newVal)
+    solodTracks:
     {
+      handler() {
         if(this.solodTracks.length && this.solodTracks.indexOf(this.trackIndex) === -1)
           this.muteChange(true, true);
         else
           this.muteChange(false, true);
+      },
+      deep: true
     },
-
-
   },
 
   created(){
@@ -103,19 +94,12 @@ export default {
     this.loadSound();
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     EventBus.$off(this.mixerVars.instance_id+'play',this.playSound);
     EventBus.$off(this.mixerVars.instance_id+'stop',this.stopSound);
   },
 
-
-
-  mounted(){
-
-  },
   methods: {
-
-
     mute()
     {
       this.gainValue = this.gainNode.gain.value; // store gain value
@@ -139,27 +123,29 @@ export default {
     */
 
     muteChange(value, triggered_from_solo){
-
         // don't mute hidden tracks
         if(this.hidden)
           return;
 
-
         if(triggered_from_solo)
         {
-          if(value && !this.mutedByMute && !this.mutedBySolo)
+          if(value && !this.mutedByMute && !this.mutedBySolo) {
             this.mute();
+          }
           
-          if(!value && !this.mutedByMute)
+          if(!value && !this.mutedByMute) {
             this.unMute();
-        
+          }
+
           this.mutedBySolo = value;
         }else{
-          if(value && !this.mutedByMute && !this.mutedBySolo)
+          if(value && !this.mutedByMute && !this.mutedBySolo) {
             this.mute();
+          }
           
-          if(!value && !this.mutedBySolo)
+          if(!value && !this.mutedBySolo) {
             this.unMute();
+          }
 
           this.mutedByMute = value;
         }
@@ -167,7 +153,7 @@ export default {
     },
 
     soloChange(value){
-        this.$emit('soloChange', {index:this.trackIndex});
+      EventBus.$emit('soloChange', {index:this.trackIndex});
     },
 
     changeGain(gain)
@@ -181,8 +167,6 @@ export default {
 
         this.$emit('gainChange', {index:this.trackIndex,gain:gain});
     },
-
-    
 
     changePan(pan) {
         this.pan = pan;
@@ -223,15 +207,12 @@ export default {
     },
    
     playSound(playfrom) {
-
         if(playfrom === undefined)
             playfrom = 0;
 
         this.setupAudioNodes();
 
-
         this.sourceNode.start(0,playfrom/1000);
-
     },
 
     stopSound() {
@@ -260,24 +241,10 @@ export default {
 
 
     setupAudioNodes() {
- 
-
-
-        // create a buffer source node
         this.sourceNode = this.context.createBufferSource();
 
         this.sourceNode.buffer = this.buffer;
 
-       
-
-
-       // this.sourceNode.loop = false; // false to stop looping
-      //  this.sourceNode.muted = false; 
-
-
-       // this.sourceNode.playbackRate.value = 1;
-
-        // setup a analyzers
         this.leftAnalyser = this.context.createAnalyser();
         this.leftAnalyser.smoothingTimeConstant = 0.6;
         this.leftAnalyser.fftSize = 1024;
@@ -329,20 +296,16 @@ export default {
 
         this.changePan(this.pan);
 
-
-
         this.sourceNode.onended = () => {
           this.onended();
         }
 
         this.loaded = true;
-      
     },
 
 
     onended()
     {
-
         // disconnect everything
         this.scriptProcessorNode.disconnect();
         this.sourceNode.disconnect();
@@ -356,11 +319,7 @@ export default {
             EventBus.$emit(this.mixerVars.instance_id+'play', this.playFrom);
 
         EventBus.$emit(this.mixerVars.instance_id+'ended',this._componentId);
-
     },
-
-    
-
   }
 }
 </script>

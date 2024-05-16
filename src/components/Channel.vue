@@ -1,34 +1,20 @@
 <template>
 
   <div class="vue-audio-mixer-channel" :class="{'with-panner':mixerVars.show_pan}">
-
         <div class="vue-audio-mixer-channel-panner-container" :class="{'vue-audio-mixer-is-master':isMaster}">
 
-          <!-- <VueKnobControl
-          v-if="mixerVars.show_pan"
-          :min="-90"
-          :max="90"
-          :size="pannerSize"
-          :stroke-width="7"
-          v-model="pan"
-          class="vue-audio-mixer-channel-panner"
-          primaryColor="#c40303"
-          secondaryColor="#adadad"
-          :textColor="knobTextColour"
-        ></VueKnobControl> -->
         <input v-model="pan" type="number"/>
       </div>
-
 
       <canvas :id="'canvas'+_componentId"  width="25" :height="meterHeight" style="display: block;" class="vue-audio-mixer-channel-meter-canvas"></canvas>
 
       <div class="slider_value">{{formattedGain}}</div>
 
-      <Slider v-model="gain" v-on:input="changeGain" />
+      <Slider v-model="gain" v-on:update="changeGain" />
 
       <div class="vue-audio-mixer-channel-mute-button" v-show="showMute">
         <label>
-          <input v-model="mute" type="checkbox" />
+          <input id="checkbox" v-model="mute" type="checkbox" />
           <span class="vue-audio-mixer-channel-mute-button-label">M</span>
         </label>
       </div>
@@ -43,26 +29,17 @@
         </label>
       </div>
 
-    
-
       <div class="vue-audio-mixer-channel-label"><label data-label="0"> {{title}}</label></div>
-
-
   </div>
-
 </template>
-  
-
 
 <script>
 
-// import VueKnobControl from 'vue-knob-control'
 import EventBus from './../event-bus';
 import variables from '../scss/includes/_variables.scss';
 
 import Slider from './Slider.vue';
 
-/** A simple instance counter, usable for component Ids */
 let instanceCount = 0
 
 export default {
@@ -85,10 +62,11 @@ export default {
     'mixerVars',
     'solodTracks'
   ],
+
   components:{
-    // VueKnobControl,
     Slider
   },
+
   data : function(){       
       return {
           leftBouncer : {average:0,opacity:1},
@@ -106,10 +84,8 @@ export default {
   },
 
   computed:{
-
     knobTextColour()
     {
-
       if(this.mixerVars.theme_colour == 'default'){
         return variables.knobTextColourDefault;
       }
@@ -130,33 +106,25 @@ export default {
       return parseInt(variables['meterWidth'+this.mixerVars.theme_size]);
     },
 
-
     meterWidthBetween()
     {
       return parseInt(variables['meterWidthBetween'+this.mixerVars.theme_size]);
     },
 
-
     formattedGain()
     {
       return this.pad(Math.round((this.gain*100)),3);
     }
-
   },
 
   watch:{
-
     pan: function(){
         this.changePan();
     },
 
-
     mute: function(){
-        this.muteChange();
+      this.muteChange();
     },
-
-    
-
 
     soloModel: function(newVal){
         this.soloChange(this.trackIndex, newVal);
@@ -165,7 +133,6 @@ export default {
     titleModel:function(){
       this.titleChange();
     }
-
   },
 
   created(){
@@ -207,10 +174,8 @@ export default {
       this.drawMeter();
 
   },
+
   methods: {
-
-   
-
     pad(n, width, z) {
       z = z || '0';
       n = n + '';
@@ -218,16 +183,18 @@ export default {
     },
 
     ended(index){
-
       if(index == this.index){
         setTimeout( () => { this.clearCanvas()}, 10);
       }
 
     },
 
-    changeGain()
+    changeGain(gainValue)
     {
-      //TODO later re-enable: this.$emit('gainChange',this.gain);
+      if (gainValue) {
+        this.gain = gainValue
+        this.$emit('gainChange', this.gain); 
+      }
     },
 
     changePan() {
@@ -240,18 +207,12 @@ export default {
     },
 
     soloChange(trackIndex, is_solo) {
-        EventBus.$emit(this.mixerVars.instance_id+'soloChange',{index:trackIndex, solo:is_solo});
+      EventBus.$emit(this.mixerVars.instance_id+'soloChange',{index:trackIndex, solo:is_solo});
     },
 
     titleChange() {
       this.$emit(this.mixerVars.instance_id+'titleChange',this.titleModel);
     },
-
-
-
-    
-
-
 
     getAverageVolume(array) {
         var values = 0;
@@ -265,9 +226,7 @@ export default {
         return average;
     },
 
-
     clearCanvas(){
-
        // clear the current state
       this.ctx.clearRect(0, 0, 60, this.meterHeight);
 
@@ -278,10 +237,7 @@ export default {
 
     },
 
-   
-
     drawMeter(){
-
       // get the average for the first channel
       var array =  new Uint8Array(this.leftAnalyser.frequencyBinCount);
       this.leftAnalyser.getByteFrequencyData(array);
@@ -334,10 +290,7 @@ export default {
         this.ctx.fillRect(0,this.meterHeight-(this.leftBouncer.average*(this.meterHeight/100))-2,this.meterWidth,this.leftBouncer.opacity);
       if(average2 > 0)
         this.ctx.fillRect(this.meterWidth+this.meterWidthBetween,this.meterHeight-(this.rightBouncer.average*(this.meterHeight/100))-2,this.meterWidth,this.rightBouncer.opacity);
-
-    
     }
-
   }
 }
 </script>

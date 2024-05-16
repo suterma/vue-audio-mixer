@@ -21,22 +21,21 @@ import variables from '../scss/includes/_variables.scss';
 export default {
     mixins:[],
     props: {
-        value: {
+        modelValue: {
             type: [Number, String]
         }
     },
 
-    data : function(){       
+    data : function() {
       return {
         dragging:false,
         progress:0,
         rows:[23,43,63,83,103,123,143,163,183]
       };
-  },
+    },
 
    
      watch:{
-
       inputVal: function(){
         this.setProgress();
       },
@@ -47,57 +46,46 @@ export default {
     },
 
     created(){
-
-
-
-
-
-      
-
-      //console.log(this.progress);
-      //        this.inputVal = ((percent/100) * 1.5).toFixed(1);
-      //        
-  
       window.addEventListener('mousemove',this.doDrag);
       window.addEventListener('touchmove',this.doDrag);
 
       window.addEventListener("mouseup", this.triggerMouseUpEvent);
       window.addEventListener("touchend", this.triggerMouseUpEvent);
     },
+
     beforeDestroy() {
-      window.removeEventListener('mousemove',this.doDrag);
-      window.removeEventListener('touchmove',this.doDrag);
+      window.removeEventListener('mousemove', this.doDrag);
+      window.removeEventListener('touchmove', this.doDrag);
       window.removeEventListener("mouseup", this.triggerMouseUpEvent);
       window.removeEventListener("touchend", this.triggerMouseUpEvent);
     },
-    computed: {
 
+    computed: {
         trackHeight()
         {
-
-
           let paddingtop = 58;
           return parseInt(variables.meterHeight) - paddingtop;
-
         },
+
         thumbPosition(){
           return (this.progress) +'px';
         },
-        inputVal: {
-            get: function (){
-                return this.value;
-            },
 
-            set: function (value){
-                this.$emit('input', value);
-            }
+        inputVal: {
+          get: function (){
+              return this.modelValue;
+          },
+
+          set: function (modelValue){
+            this.$emit('update', modelValue);
+          }
         }
     },
-    methods: {
 
+    methods: {
       setProgress()
       {
-          let percent = (100/1.5)*this.value;
+          let percent = (100/1.5)*this.modelValue;
           let percentt = (this.trackHeight/100) * percent;
           this.progress = Math.round(percentt);
       },
@@ -109,8 +97,6 @@ export default {
 
       doDrag(e)
       {
-
-
         if(!this.dragging){
           return;
         }
@@ -129,13 +115,12 @@ export default {
 
         if(percent > 100)
           percent = 100;
+
         if(percent < 0)
           percent = 0;
-        
-        this.inputVal = ((percent/100) * 1.5).toFixed(1);
 
+        this.inputVal = (((percent/100) * 1.5).toFixed(1));
       },
-
 
       startDrag(e)
       {
@@ -143,7 +128,6 @@ export default {
           e.preventDefault();
         this.dragging = true; 
       }
-
     }
 }
 

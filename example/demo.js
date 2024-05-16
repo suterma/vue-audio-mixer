@@ -7859,22 +7859,21 @@
     var script$8 = {
         mixins:[],
         props: {
-            value: {
+            modelValue: {
                 type: [Number, String]
             }
         },
 
-        data : function(){       
+        data : function() {
           return {
             dragging:false,
             progress:0,
             rows:[23,43,63,83,103,123,143,163,183]
           };
-      },
+        },
 
        
          watch:{
-
           inputVal: function(){
             this.setProgress();
           },
@@ -7885,57 +7884,46 @@
         },
 
         created(){
-
-
-
-
-
-          
-
-          //console.log(this.progress);
-          //        this.inputVal = ((percent/100) * 1.5).toFixed(1);
-          //        
-      
           window.addEventListener('mousemove',this.doDrag);
           window.addEventListener('touchmove',this.doDrag);
 
           window.addEventListener("mouseup", this.triggerMouseUpEvent);
           window.addEventListener("touchend", this.triggerMouseUpEvent);
         },
+
         beforeDestroy() {
-          window.removeEventListener('mousemove',this.doDrag);
-          window.removeEventListener('touchmove',this.doDrag);
+          window.removeEventListener('mousemove', this.doDrag);
+          window.removeEventListener('touchmove', this.doDrag);
           window.removeEventListener("mouseup", this.triggerMouseUpEvent);
           window.removeEventListener("touchend", this.triggerMouseUpEvent);
         },
-        computed: {
 
+        computed: {
             trackHeight()
             {
-
-
               let paddingtop = 58;
               return parseInt(variables.meterHeight) - paddingtop;
-
             },
+
             thumbPosition(){
               return (this.progress) +'px';
             },
-            inputVal: {
-                get: function (){
-                    return this.value;
-                },
 
-                set: function (value){
-                    this.$emit('input', value);
-                }
+            inputVal: {
+              get: function (){
+                  return this.modelValue;
+              },
+
+              set: function (modelValue){
+                this.$emit('update', modelValue);
+              }
             }
         },
-        methods: {
 
+        methods: {
           setProgress()
           {
-              let percent = (100/1.5)*this.value;
+              let percent = (100/1.5)*this.modelValue;
               let percentt = (this.trackHeight/100) * percent;
               this.progress = Math.round(percentt);
           },
@@ -7947,8 +7935,6 @@
 
           doDrag(e)
           {
-
-
             if(!this.dragging){
               return;
             }
@@ -7967,13 +7953,12 @@
 
             if(percent > 100)
               percent = 100;
+
             if(percent < 0)
               percent = 0;
-            
-            this.inputVal = ((percent/100) * 1.5).toFixed(1);
 
+            this.inputVal = (((percent/100) * 1.5).toFixed(1));
           },
-
 
           startDrag(e)
           {
@@ -7981,7 +7966,6 @@
               e.preventDefault();
             this.dragging = true; 
           }
-
         }
     };
 
@@ -8018,8 +8002,7 @@
     script$8.render = render$8;
     script$8.__file = "src/components/Slider.vue";
 
-    /** A simple instance counter, usable for component Ids */
-    let instanceCount$1 = 0;
+    let instanceCount = 0;
 
     var script$7 = {
       name: 'Channel',
@@ -8041,10 +8024,11 @@
         'mixerVars',
         'solodTracks'
       ],
+
       components:{
-        // VueKnobControl,
         Slider: script$8
       },
+
       data : function(){       
           return {
               leftBouncer : {average:0,opacity:1},
@@ -8062,10 +8046,8 @@
       },
 
       computed:{
-
         knobTextColour()
         {
-
           if(this.mixerVars.theme_colour == 'default'){
             return variables.knobTextColourDefault;
           }
@@ -8086,33 +8068,25 @@
           return parseInt(variables['meterWidth'+this.mixerVars.theme_size]);
         },
 
-
         meterWidthBetween()
         {
           return parseInt(variables['meterWidthBetween'+this.mixerVars.theme_size]);
         },
 
-
         formattedGain()
         {
           return this.pad(Math.round((this.gain*100)),3);
         }
-
       },
 
       watch:{
-
         pan: function(){
             this.changePan();
         },
 
-
         mute: function(){
-            this.muteChange();
+          this.muteChange();
         },
-
-        
-
 
         soloModel: function(newVal){
             this.soloChange(this.trackIndex, newVal);
@@ -8121,7 +8095,6 @@
         titleModel:function(){
           this.titleChange();
         }
-
       },
 
       created(){
@@ -8135,7 +8108,7 @@
 
       beforeCreate() {
         // A component Id for internal referencing of HTML elements
-        this._componentId = ++instanceCount$1;
+        this._componentId = ++instanceCount;
        },
 
       beforeDestroy() {
@@ -8163,10 +8136,8 @@
           this.drawMeter();
 
       },
+
       methods: {
-
-       
-
         pad(n, width, z) {
           z = z || '0';
           n = n + '';
@@ -8174,16 +8145,18 @@
         },
 
         ended(index){
-
           if(index == this.index){
             setTimeout( () => { this.clearCanvas();}, 10);
           }
 
         },
 
-        changeGain()
+        changeGain(gainValue)
         {
-          //TODO later re-enable: this.$emit('gainChange',this.gain);
+          if (gainValue) {
+            this.gain = gainValue;
+            this.$emit('gainChange', this.gain); 
+          }
         },
 
         changePan() {
@@ -8196,18 +8169,12 @@
         },
 
         soloChange(trackIndex, is_solo) {
-            EventBus.$emit(this.mixerVars.instance_id+'soloChange',{index:trackIndex, solo:is_solo});
+          EventBus.$emit(this.mixerVars.instance_id+'soloChange',{index:trackIndex, solo:is_solo});
         },
 
         titleChange() {
           this.$emit(this.mixerVars.instance_id+'titleChange',this.titleModel);
         },
-
-
-
-        
-
-
 
         getAverageVolume(array) {
             var values = 0;
@@ -8221,9 +8188,7 @@
             return average;
         },
 
-
         clearCanvas(){
-
            // clear the current state
           this.ctx.clearRect(0, 0, 60, this.meterHeight);
 
@@ -8234,10 +8199,7 @@
 
         },
 
-       
-
         drawMeter(){
-
           // get the average for the first channel
           var array =  new Uint8Array(this.leftAnalyser.frequencyBinCount);
           this.leftAnalyser.getByteFrequencyData(array);
@@ -8290,16 +8252,13 @@
             this.ctx.fillRect(0,this.meterHeight-(this.leftBouncer.average*(this.meterHeight/100))-2,this.meterWidth,this.leftBouncer.opacity);
           if(average2 > 0)
             this.ctx.fillRect(this.meterWidth+this.meterWidthBetween,this.meterHeight-(this.rightBouncer.average*(this.meterHeight/100))-2,this.meterWidth,this.rightBouncer.opacity);
-
-        
         }
-
       }
     };
 
     const _hoisted_1$6 = ["id", "height"];
     const _hoisted_2$5 = { class: "slider_value" };
-    const _hoisted_3$5 = { class: "vue-audio-mixer-channel-mute-button" };
+    const _hoisted_3$4 = { class: "vue-audio-mixer-channel-mute-button" };
     const _hoisted_4$4 = /*#__PURE__*/createBaseVNode("span", { class: "vue-audio-mixer-channel-mute-button-label" }, "M", -1 /* HOISTED */);
     const _hoisted_5$3 = {
       key: 0,
@@ -8319,7 +8278,6 @@
         createBaseVNode("div", {
           class: normalizeClass(["vue-audio-mixer-channel-panner-container", {'vue-audio-mixer-is-master':$props.isMaster}])
         }, [
-          createCommentVNode(" <VueKnobControl\n          v-if=\"mixerVars.show_pan\"\n          :min=\"-90\"\n          :max=\"90\"\n          :size=\"pannerSize\"\n          :stroke-width=\"7\"\n          v-model=\"pan\"\n          class=\"vue-audio-mixer-channel-panner\"\n          primaryColor=\"#c40303\"\n          secondaryColor=\"#adadad\"\n          :textColor=\"knobTextColour\"\n        ></VueKnobControl> "),
           withDirectives(createBaseVNode("input", {
             "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((_ctx.pan) = $event)),
             type: "number"
@@ -8338,11 +8296,12 @@
         createVNode(_component_Slider, {
           modelValue: _ctx.gain,
           "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((_ctx.gain) = $event)),
-          onInput: $options.changeGain
-        }, null, 8 /* PROPS */, ["modelValue", "onInput"]),
-        withDirectives(createBaseVNode("div", _hoisted_3$5, [
+          onUpdate: $options.changeGain
+        }, null, 8 /* PROPS */, ["modelValue", "onUpdate"]),
+        withDirectives(createBaseVNode("div", _hoisted_3$4, [
           createBaseVNode("label", null, [
             withDirectives(createBaseVNode("input", {
+              id: "checkbox",
               "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => ((_ctx.mute) = $event)),
               type: "checkbox"
             }, null, 512 /* NEED_PATCH */), [
@@ -8378,11 +8337,9 @@
     script$7.render = render$7;
     script$7.__file = "src/components/Channel.vue";
 
-    /** A simple instance counter, usable for component Ids */
-    let instanceCount = 0;
-
     var script$6 = {
       name: 'MixerChannel',
+
       props: [
           'title',
           'context', 
@@ -8396,53 +8353,48 @@
           'hidden',
           'solodTracks'
       ],
+
       components:{Channel: script$7},
+
       data : function(){       
           return {
-            sourceNode         : false,
-            scriptProcessorNode: false,
-            gainNode           : false,
-            pannerNode         : false,
-            
-            muted              : false,
-            leftAnalyser       : false,
-            
-            leftBouncer        : {average:0,opacity:1},
-            rightAnalyser      : false,
-            rightBouncer       : {average:0,opacity:1},
-            splitter           : false,
-            ctx                : false,
-            gradient           : false,
             buffer             : false,
+            ctx                : false,
+            gain               : 0.8,
+            gainNode           : false,
+            gainValue          : 0,
+            gradient           : false,
+            leftAnalyser       : false,
+            leftBouncer        : {average:0,opacity:1},
+            loaded             : false,
             meterHeight        : 400,
             meterWidth         : 10,
+            muted              : false,
+            mutedByMute        :false,
+            mutedBySolo        :false,
+            pan                : 0,
+            pannerNode         : false,
             playFrom           : false,
             playing            : false,
-            gainValue          : 0,
-            pan                : 0,
-            gain               : 0.8,
-            loaded             : false,
-            mutedBySolo                :false,
-            mutedByMute                :false
+            rightAnalyser      : false,
+            rightBouncer       : {average:0,opacity:1},
+            scriptProcessorNode: false,
+            sourceNode         : false,
+            splitter           : false,
           };
       },
 
-      beforeCreate() {
-        // A component Id for internal referencing of HTML elements
-        this._componentId = ++instanceCount;
-      },
-
       watch:{
-        
-        solodTracks(newVal)
+        solodTracks:
         {
+          handler() {
             if(this.solodTracks.length && this.solodTracks.indexOf(this.trackIndex) === -1)
               this.muteChange(true, true);
             else
               this.muteChange(false, true);
+          },
+          deep: true
         },
-
-
       },
 
       created(){
@@ -8456,19 +8408,12 @@
         this.loadSound();
       },
 
-      beforeDestroy() {
+      beforeUnmount() {
         EventBus.$off(this.mixerVars.instance_id+'play',this.playSound);
         EventBus.$off(this.mixerVars.instance_id+'stop',this.stopSound);
       },
 
-
-
-      mounted(){
-
-      },
       methods: {
-
-
         mute()
         {
           this.gainValue = this.gainNode.gain.value; // store gain value
@@ -8492,27 +8437,29 @@
         */
 
         muteChange(value, triggered_from_solo){
-
             // don't mute hidden tracks
             if(this.hidden)
               return;
 
-
             if(triggered_from_solo)
             {
-              if(value && !this.mutedByMute && !this.mutedBySolo)
+              if(value && !this.mutedByMute && !this.mutedBySolo) {
                 this.mute();
+              }
               
-              if(!value && !this.mutedByMute)
+              if(!value && !this.mutedByMute) {
                 this.unMute();
-            
+              }
+
               this.mutedBySolo = value;
             }else {
-              if(value && !this.mutedByMute && !this.mutedBySolo)
+              if(value && !this.mutedByMute && !this.mutedBySolo) {
                 this.mute();
+              }
               
-              if(!value && !this.mutedBySolo)
+              if(!value && !this.mutedBySolo) {
                 this.unMute();
+              }
 
               this.mutedByMute = value;
             }
@@ -8520,7 +8467,7 @@
         },
 
         soloChange(value){
-            this.$emit('soloChange', {index:this.trackIndex});
+          EventBus.$emit('soloChange', {index:this.trackIndex});
         },
 
         changeGain(gain)
@@ -8534,8 +8481,6 @@
 
             this.$emit('gainChange', {index:this.trackIndex,gain:gain});
         },
-
-        
 
         changePan(pan) {
             this.pan = pan;
@@ -8576,15 +8521,12 @@
         },
        
         playSound(playfrom) {
-
             if(playfrom === undefined)
                 playfrom = 0;
 
             this.setupAudioNodes();
 
-
             this.sourceNode.start(0,playfrom/1000);
-
         },
 
         stopSound() {
@@ -8613,24 +8555,10 @@
 
 
         setupAudioNodes() {
-     
-
-
-            // create a buffer source node
             this.sourceNode = this.context.createBufferSource();
 
             this.sourceNode.buffer = this.buffer;
 
-           
-
-
-           // this.sourceNode.loop = false; // false to stop looping
-          //  this.sourceNode.muted = false; 
-
-
-           // this.sourceNode.playbackRate.value = 1;
-
-            // setup a analyzers
             this.leftAnalyser = this.context.createAnalyser();
             this.leftAnalyser.smoothingTimeConstant = 0.6;
             this.leftAnalyser.fftSize = 1024;
@@ -8682,20 +8610,16 @@
 
             this.changePan(this.pan);
 
-
-
             this.sourceNode.onended = () => {
               this.onended();
             };
 
             this.loaded = true;
-          
         },
 
 
         onended()
         {
-
             // disconnect everything
             this.scriptProcessorNode.disconnect();
             this.sourceNode.disconnect();
@@ -8709,11 +8633,7 @@
                 EventBus.$emit(this.mixerVars.instance_id+'play', this.playFrom);
 
             EventBus.$emit(this.mixerVars.instance_id+'ended',this._componentId);
-
         },
-
-        
-
       }
     };
 
@@ -8804,7 +8724,7 @@
       key: 0,
       class: "vue-audio-mixer-timer-number"
     };
-    const _hoisted_3$4 = { key: 1 };
+    const _hoisted_3$3 = { key: 1 };
     const _hoisted_4$3 = { class: "vue-audio-mixer-timer-number" };
     const _hoisted_5$2 = /*#__PURE__*/createTextVNode(":");
     const _hoisted_6 = { class: "vue-audio-mixer-timer-number" };
@@ -8825,7 +8745,7 @@
             ? (openBlock(), createElementBlock("span", _hoisted_2$4, toDisplayString($options.progressFormatted[0]), 1 /* TEXT */))
             : createCommentVNode("v-if", true),
           ($options.showMins)
-            ? (openBlock(), createElementBlock("span", _hoisted_3$4, ":"))
+            ? (openBlock(), createElementBlock("span", _hoisted_3$3, ":"))
             : createCommentVNode("v-if", true),
           createBaseVNode("span", _hoisted_4$3, toDisplayString($options.progressFormatted[1]), 1 /* TEXT */),
           _hoisted_5$2,
@@ -8899,7 +8819,6 @@
         tracks: {
           // This will let Vue know to look inside the array
           deep: true,
-
           // We have to move our method to a handler field
           handler(){
           // only allow the canvas to be refreshed once every 1 seconds max
@@ -9252,10 +9171,10 @@
 
     const _hoisted_1$3 = { class: "vue-audio-mixer-transport" };
     const _hoisted_2$3 = /*#__PURE__*/createBaseVNode("span", null, null, -1 /* HOISTED */);
-    const _hoisted_3$3 = /*#__PURE__*/createBaseVNode("span", null, null, -1 /* HOISTED */);
+    const _hoisted_3$2 = /*#__PURE__*/createBaseVNode("span", null, null, -1 /* HOISTED */);
     const _hoisted_4$2 = [
       _hoisted_2$3,
-      _hoisted_3$3
+      _hoisted_3$2
     ];
 
     function render$3(_ctx, _cache, $props, $setup, $data, $options) {
@@ -9290,7 +9209,7 @@
 
     const _hoisted_1$2 = { class: "vue-audio-mixer-loader" };
     const _hoisted_2$2 = { class: "vue-audio-mixer-loader-text" };
-    const _hoisted_3$2 = /*#__PURE__*/createTextVNode("Loading... ");
+    const _hoisted_3$1 = /*#__PURE__*/createTextVNode("Loading... ");
     const _hoisted_4$1 = /*#__PURE__*/createTextVNode("%");
     const _hoisted_5$1 = /*#__PURE__*/createBaseVNode("div", { class: "vue-audio-mixer-loader-inner" }, [
       /*#__PURE__*/createBaseVNode("div"),
@@ -9300,7 +9219,7 @@
     function render$2(_ctx, _cache, $props, $setup, $data, $options) {
       return (openBlock(), createElementBlock("div", _hoisted_1$2, [
         createBaseVNode("p", _hoisted_2$2, [
-          _hoisted_3$2,
+          _hoisted_3$1,
           createBaseVNode("span", null, toDisplayString($props.percentLoaded), 1 /* TEXT */),
           _hoisted_4$1
         ]),
@@ -9842,14 +9761,12 @@
             track_load_error           : false
           };
       },
+
       created(){
-
-
         this.currentTime =  Date.now();
         this.startedAt = this.currentTime;
 
         this.checkConfig();
-
 
         var AudioContext = window.AudioContext // Default
         || window.webkitAudioContext // Safari and old versions of Chrome
@@ -9871,7 +9788,6 @@
           if(this.playing)
             this.currentTime =  Date.now();
         }, 1);
-
       },
 
       beforeDestroy() {
@@ -9901,35 +9817,29 @@
       },
 
       computed: {
-
         visibleTracks(){
-
           return this.tracks.filter(t => !t.hidden);
-
         },
 
         mixerWidth()
         {
-
           if(this.track_load_error){
             return '500px';
           }
-
 
           let width = 69; // channel width of medium
           if(this.mixerVars.theme_size == 'Small'){
             width = 51; // channel width of small
           }
           return (width*(this.visibleTracks.length+1))+'px';
-
         },
 
         mixerVars()
         {
           return {
             'theme_size'     : this.themeSize,
-            'theme_colour'     : this.theme,
-            'instance_id'    : this._uid,
+            'theme_colour'   : this.theme,
+            'instance_id'    : Math.floor((Math.random() * 100) + 1),
             'show_pan'       : this.showPan,
             'show_total_time': this.showTotalTime
           }
@@ -9937,9 +9847,7 @@
 
         trackClass()
         {
-
           return 'vue-audio-mixer-theme-tracks-'+this.tracks.length;
-
         },
 
         themeClassColour(){
@@ -9958,7 +9866,6 @@
           if(this.size && this.size.toLowerCase() == 'small'){
             return 'Small'
           }
-
           return 'Medium'
         },
 
@@ -9997,12 +9904,9 @@
       },
 
       methods: {
-
         trackLoadError(track_url)
         {
-
           this.track_load_error = track_url;
-
         },
 
         saveAudioMix(){
@@ -10051,7 +9955,6 @@
         },
 
         playFromPercent(percent){
-
           if(this.playing){
             this.restart = true;
             EventBus.$emit(this.mixerVars.instance_id+'stop');
@@ -10069,7 +9972,6 @@
 
 
         checkConfig(){
-
           let json = this.config;
 
           if(json){
@@ -10078,10 +9980,7 @@
             this.masterGainValue = json.master.gain;
             this.masterMuted     = json.master.muted;
           }
-
-
         },
-
 
         started(){
           this.overRideProgressBarPosition = false;
@@ -10094,7 +9993,6 @@
 
         pause()
         {
-
           // stop if already playing
           if(this.playing){
             this.stopRecording();
@@ -10110,12 +10008,9 @@
             this.pause();
 
           this.doPlay();
-
-          
-          
         },
-        doPlay(){
 
+        doPlay(){
           if(this.progressPercent >= 100){ // it's at the end, so restart
             this.playing = true;
             this.playFromPercent(0);
@@ -10123,16 +10018,10 @@
             this.startedAt = Date.now() - this.progress;
             EventBus.$emit(this.mixerVars.instance_id+'play',this.pausedAt);      
           }
-
         },
-
-
-
-
 
         togglePlay()
         {
-
           if(this.playing){
             this.pause();
           }else {
@@ -10174,9 +10063,10 @@
 
         },
 
-
         changeGain(value){
-          this.tracks[value.index].gain = parseFloat(value.gain);
+          if (value && value.gain) {
+            this.tracks[value.index].gain = parseFloat(value.gain);
+          }
         },
 
         changePan(value){
@@ -10184,7 +10074,9 @@
         },
 
         changeMute(value){
-          this.tracks[value.index].muted = value.muted;
+          if (value && value.muted) {
+            this.tracks[value.index].muted = value.muted;
+          }
         },
 
         changeSolo(value){
@@ -10209,7 +10101,6 @@
             this.masterMuted = false;
             this.gainNode.gain.value = this.masterGainValue; // restore previous gain value
           }
-
         },
 
          // Master Gain
@@ -10287,7 +10178,7 @@
       class: "vue-audio-mixer-error"
     };
     const _hoisted_2$1 = { class: "vue-audio-mixer-loading-hider" };
-    const _hoisted_3$1 = {
+    const _hoisted_3 = {
       class: "vue-audio-mixer-channel-strip",
       ref: "channelstrip"
     };
@@ -10315,7 +10206,7 @@
               }, null, 8 /* PROPS */, ["percentLoaded"]))
             : createCommentVNode("v-if", true),
         withDirectives(createBaseVNode("div", _hoisted_2$1, [
-          createBaseVNode("div", _hoisted_3$1, [
+          createBaseVNode("div", _hoisted_3, [
             createBaseVNode("div", null, [
               (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.tracks, (track, index) => {
                 return withDirectives((openBlock(), createBlock(_component_MixerChannel, {
@@ -10427,61 +10318,79 @@
         components: {
             VueAudioMixer: script$1,
         },
-        data: function() {
-            return {
-                is_loaded: false,
-                newConfig: null,
-                config: {
-                    tracks: [
-                        {
-                            title: 'Bass',
-                            url: 'https://audiomixer.io/stems/bass.mp3',
-                            pan: -30,
-                            gain: 1.2,
-                            muted: false,
-                            hidden: false,
-                        },
-                        {
-                            title: 'Flutes',
-                            url: 'https://audiomixer.io/stems/flutes.mp3',
-                            pan: 73,
-                            gain: 0.9,
-                            muted: false,
-                            hidden: false,
-                        },
-                        {
-                            title: 'Perc',
-                            url: 'https://audiomixer.io/stems/perc.mp3',
-                            pan: 26,
-                            gain: 0.85,
-                            muted: false,
-                            hidden: false,
-                        },
-                        {
-                            title: 'Piano',
-                            url: 'https://audiomixer.io/stems/piano.mp3',
-                            pan: 10,
-                            gain: 1.2,
-                            muted: false,
-                            hidden: false,
-                        },
-                        {
-                            title: 'Strings',
-                            url: 'https://audiomixer.io/stems/strings.mp3',
-                            pan: -49,
-                            gain: 0.9,
-                            muted: false,
-                            hidden: false,
-                        },
-                    ],
-                    master: {
-                        pan: 0,
-                        gain: 0.3,
-                        muted: false,
-                    },
-                },
-            };
-        },
+        data() {
+        return {
+          is_loaded:false,
+          newconfig:{},
+          config: {
+           "tracks": [
+              {
+                "title": "Bass",
+                "url": "/tracks/Blues For Alice 160bpm_Bass.mp3",
+                "pan": 0,
+                "gain": 1,
+                "muted": false,
+                "hidden": false
+              },
+              {
+                "title": "Click",
+                "url": "/tracks/Blues For Alice 160bpm_Click.mp3",
+                "pan": 0,
+                "gain": 0.2,
+                "muted": false,
+                "hidden": false
+              },
+              {
+                "title": "Count In",
+                "url": "/tracks/Blues For Alice 160bpm_Count In.mp3",
+                "pan": 0,
+                "gain": 1,
+                "muted": false,
+                "hidden": false
+              },
+              {
+                "title": "Drums",
+                "url": "/tracks/Blues For Alice 160bpm_Drums.mp3",
+                "pan": 0,
+                "gain": 1,
+                "muted": false,
+                "hidden": false
+              },
+              {
+                "title": "Keys",
+                "url": "/tracks/Blues For Alice 160bpm_Keys.mp3",
+                "pan": 0,
+                "gain": 1,
+                "muted": false,
+                "hidden": false
+              },
+              {
+                "title": "Trumpet",
+                "url": "/tracks/Blues For Alice 160bpm_Trumpet.mp3",
+                "pan": 0,
+                "gain": 1,
+                "muted": false,
+                "hidden": false
+              },
+              {
+                "title": "Master",
+                "url": "/tracks/Blues For Alice 160bpm_MASTER.mp3",
+                "pan": 0,
+                "gain": 1,
+                "muted": false,
+                "hidden": false
+              }
+            ],
+            "master":{
+                "pan":0,
+                "gain":1,
+                "muted":false,
+                "value": 5
+            }
+          }
+        }
+      },
+
         created() {
             this.newConfig = this.config;
         },
@@ -10532,7 +10441,6 @@
 
     const _hoisted_1 = { style: {"text-align":"center"} };
     const _hoisted_2 = { style: {"position":"relative","display":"inline-block"} };
-    const _hoisted_3 = ["innerHTML"];
 
     function render(_ctx, _cache, $props, $setup, $data, $options) {
       const _component_vue_audio_mixer = resolveComponent("vue-audio-mixer");
@@ -10541,7 +10449,7 @@
         createBaseVNode("div", _hoisted_1, [
           createBaseVNode("div", _hoisted_2, [
             createVNode(_component_vue_audio_mixer, {
-              config: _ctx.config,
+              config: $data.config,
               size: "medium",
               theme: "dark",
               onLoaded: $options.loadedChange,
@@ -10550,10 +10458,7 @@
               showTotalTime: true
             }, null, 8 /* PROPS */, ["config", "onLoaded", "onInput"])
           ])
-        ]),
-        createBaseVNode("pre", {
-          innerHTML: $options.syntaxHighlight(_ctx.newConfig)
-        }, null, 8 /* PROPS */, _hoisted_3)
+        ])
       ]))
     }
 
